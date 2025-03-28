@@ -115,7 +115,7 @@ void Gdeh0154d67::update()
   uint64_t endTime = esp_timer_get_time();
 
   IO.cmd(0x22);
-  IO.data(0xf7);
+  IO.data(0xf4);
   IO.cmd(0x20);
   _waitBusy("_Update_Full", full_refresh_time);
 
