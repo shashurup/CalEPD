@@ -303,6 +303,11 @@ void Gdeh0154d67::_sleep(){
   _waitBusy("power_off", power_off_time);
 }
 
+void Gdeh0154d67::deepSleep() {
+  IO.cmd(0x10);
+  IO.data(0x1);
+}
+
 void Gdeh0154d67::_rotate(int16_t& x, int16_t& y, int16_t& w, int16_t& h)
 {
   switch (getRotation())

@@ -44,6 +44,7 @@ class Gdeh0154d67 : public Epd
     void update();
     // Partial update of rectangle from buffer to screen, does not power off
     void updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool using_rotation = true);
+    void deepSleep();
 
   private:
     EpdSpi& IO;
