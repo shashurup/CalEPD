@@ -71,10 +71,9 @@ void Gdeh0154d67::_wakeUp(){
     IO.reset(20);
     _deeply_sleeping = false;
   }
-  // IO.cmd(0x10);
-  // IO.data(0x00);
-  // IO.cmd(0x12);
-  //_waitBusy("epd_wakeup_power:ON", power_on_time);
+
+  IO.cmd(0x12);
+  _waitBusy("epd_wakeup_power:ON", power_on_time);
 
   IO.cmd(0x01); // Driver output control
   IO.data(0xC7);
@@ -108,7 +107,7 @@ void Gdeh0154d67::update()
   initFullUpdate();
   _writeBuffer();
   IO.cmd(0x22);
-  IO.data(0xf4);
+  IO.data(0xf7);
   IO.cmd(0x20);
   _waitBusy("_Update_Full", full_refresh_time);
   _writeBuffer();
@@ -213,7 +212,7 @@ void Gdeh0154d67::updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool 
   initPartialUpdate();
   _writeBuffer(x, y, w, h);
   IO.cmd(0x22);
-  IO.data(0xfc);
+  IO.data(0xff);
   IO.cmd(0x20);
   _waitBusy("partial_update", 100);
   _writeBuffer(x, y, w, h);
