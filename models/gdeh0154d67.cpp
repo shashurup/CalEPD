@@ -17,56 +17,11 @@ Gdeh0154d67::Gdeh0154d67(EpdSpi& dio):
 {
 }
 
-void Gdeh0154d67::initFullUpdate(){
-    _wakeUp();
-    _PowerOn();
+void Gdeh0154d67::initUpdate() {
+  _wakeUp();
 }
 
-void Gdeh0154d67::initPartialUpdate(){
-    _wakeUp();
-    _PowerOn();
-}
-
-//Initialize the display
-void Gdeh0154d67::init(bool debug)
-{
-    IO.init(4, debug); // 4MHz frequency
-    fillScreen(EPD_WHITE);
-}
-
-void Gdeh0154d67::fillScreen(uint16_t color)
-{
-  // 0xFF = 8 pixels black, 0x00 = 8 pix. white
-  uint8_t data = (color == EPD_BLACK) ? GDEH0154D67_8PIX_BLACK : GDEH0154D67_8PIX_WHITE;
-  for (uint16_t x = 0; x < sizeof(_buffer); x++)
-  {
-    _buffer[x] = data;
-  }
-}
-
-void Gdeh0154d67::_setPartialRamArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-  IO.cmd(0x11); // set ram entry mode
-  IO.data(0x03);    // x increase, y increase : normal mode
-  
-  IO.cmd(0x44);
-  IO.data(x / 8);
-  IO.data((x + w - 1) / 8);
-  
-  IO.cmd(0x45);
-  IO.data(y % 256);
-  IO.data(y / 256);
-  IO.data((y + h - 1) % 256);
-  IO.data((y + h - 1) / 256);
-
-  IO.cmd(0x4e);
-  IO.data(x / 8);
-
-  IO.cmd(0x4f);
-  IO.data(y % 256);
-  IO.data(y / 256);
-}
-
-void Gdeh0154d67::_wakeUp(){
+void Gdeh0154d67::_wakeUp() {
   if (_deeply_sleeping) {
     IO.reset(20);
     _deeply_sleeping = false;
@@ -85,60 +40,31 @@ void Gdeh0154d67::_wakeUp(){
   IO.cmd(0x18); // Read built-in temperature sensor
   IO.data(0x80);
   
-  _setRamDataEntryMode(0x03);
-}
-
-void Gdeh0154d67::_writeBuffer() {
-  IO.cmd(0x24);        // update current data
-  for (uint16_t y = 0; y < GDEH0154D67_HEIGHT; y++)
-  {
-    for (uint16_t x = 0; x < GDEH0154D67_WIDTH / 8; x++)
-    {
-      uint16_t idx = y * (GDEH0154D67_WIDTH / 8) + x;
-      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
-      IO.data(~data);
-    }
-  }
-}
-
-void Gdeh0154d67::update()
-{
-  _initial_refresh_pending = false;
-  initFullUpdate();
-  _writeBuffer();
-  IO.cmd(0x22);
-  IO.data(0xf7);
-  IO.cmd(0x20);
-  _waitBusy("_Update_Full", full_refresh_time);
-  _writeBuffer();
-}
-
-void Gdeh0154d67::_setRamDataEntryMode(uint8_t em)
-{
-  const uint16_t xPixelsPar = GDEH0154D67_WIDTH - 1;
-  const uint16_t yPixelsPar = GDEH0154D67_HEIGHT - 1;
-  em = gx_uint16_min(em, 0x03);
+  // RAM data entry mode
   IO.cmd(0x11);
-  IO.data(em);
+  IO.data(3);
+}
 
-  switch (em)
+void Gdeh0154d67::_PowerOn(void) {
+}
+
+void Gdeh0154d67::_sleep(){
+}
+
+//Initialize the display
+void Gdeh0154d67::init(bool debug)
+{
+    IO.init(4, debug); // 4MHz frequency
+    fillScreen(EPD_WHITE);
+}
+
+void Gdeh0154d67::fillScreen(uint16_t color)
+{
+  // 0xFF = 8 pixels black, 0x00 = 8 pix. white
+  uint8_t data = (color == EPD_BLACK) ? GDEH0154D67_8PIX_BLACK : GDEH0154D67_8PIX_WHITE;
+  for (uint16_t x = 0; x < sizeof(_buffer); x++)
   {
-    case 0x00: // x decrease, y decrease
-      _SetRamArea(xPixelsPar / 8, 0x00, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
-      _SetRamPointer(xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256); // set ram
-      break;
-    case 0x01: // x increase, y decrease : as in demo code
-      _SetRamArea(0x00, xPixelsPar / 8, yPixelsPar % 256, yPixelsPar / 256, 0x00, 0x00);  // X-source area,Y-gate area
-      _SetRamPointer(0x00, yPixelsPar % 256, yPixelsPar / 256); // set ram
-      break;
-    case 0x02: // x decrease, y increase
-      _SetRamArea(xPixelsPar / 8, 0x00, 0x00, 0x00, yPixelsPar % 256, yPixelsPar / 256);  // X-source area,Y-gate area
-      _SetRamPointer(xPixelsPar / 8, 0x00, 0x00); // set ram
-      break;
-    case 0x03: // x increase, y increase : normal mode
-      _SetRamArea(0x00, xPixelsPar / 8, 0x00, 0x00, yPixelsPar % 256, yPixelsPar / 256);  // X-source area,Y-gate area
-      _SetRamPointer(0x00, 0x00, 0x00); // set ram
-      break;
+    _buffer[x] = data;
   }
 }
 
@@ -163,12 +89,21 @@ void Gdeh0154d67::_SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1)
   IO.data(addrY1);
 }
 
-void Gdeh0154d67::_PowerOn(void)
-{
-  IO.cmd(0x22);
-  IO.data(0xf8);
-  IO.cmd(0x20);
-  _waitBusy("_PowerOn", power_on_time);
+void Gdeh0154d67::_writeBuffer() {
+  _SetRamArea(0x00, (GDEH0154D67_WIDTH - 1) / 8,
+              0x00, 0x00, (GDEH0154D67_HEIGHT - 1) % 256, 0x00);  // X-source area,Y-gate area
+  _SetRamPointer(0x00, 0x00, 0x00);
+  _waitBusy("ram_pointer0", 100);
+  IO.cmd(0x24);        // update current data
+  for (uint16_t y = 0; y < GDEH0154D67_HEIGHT; y++)
+  {
+    for (uint16_t x = 0; x < GDEH0154D67_WIDTH / 8; x++)
+    {
+      uint16_t idx = y * (GDEH0154D67_WIDTH / 8) + x;
+      uint8_t data = (idx < sizeof(_buffer)) ? _buffer[idx] : 0x00;
+      IO.data(~data);
+    }
+  }
 }
 
 void Gdeh0154d67::_writeBuffer(int16_t x, int16_t y, int16_t w, int16_t h) {
@@ -192,6 +127,18 @@ void Gdeh0154d67::_writeBuffer(int16_t x, int16_t y, int16_t w, int16_t h) {
   }
 }
 
+void Gdeh0154d67::update()
+{
+  _initial_refresh_pending = false;
+  initUpdate();
+  _writeBuffer();
+  IO.cmd(0x22);
+  IO.data(0xf7);
+  IO.cmd(0x20);
+  _waitBusy("_Update_Full", full_refresh_time);
+  _writeBuffer();
+}
+
 void Gdeh0154d67::updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool using_rotation)
 {
   if (using_rotation) _rotate(x, y, w, h);
@@ -209,7 +156,7 @@ void Gdeh0154d67::updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool 
     update();
   }
 
-  initPartialUpdate();
+  initUpdate();
   _writeBuffer(x, y, w, h);
   IO.cmd(0x22);
   IO.data(0xff);
@@ -245,13 +192,6 @@ void Gdeh0154d67::_waitBusy(const char* message){
     if (esp_timer_get_time()-time_since_boot>7000000)
       break;
   }
-}
-
-void Gdeh0154d67::_sleep(){
-  IO.cmd(0x22); // power off display
-  IO.data(0xc3);
-  IO.cmd(0x20);
-  _waitBusy("power_off", power_off_time);
 }
 
 void Gdeh0154d67::deepSleep() {

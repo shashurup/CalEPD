@@ -34,27 +34,27 @@ class Gdeh0154d67 : public Epd
     static const uint16_t partial_refresh_time = 500; // ms, e.g. 457282us
 
     void init(bool debug = false);
-    void initFullUpdate();
-    void initPartialUpdate();
+    void initUpdate();
     void drawPixel(int16_t x, int16_t y, uint16_t color);  // Override GFX own drawPixel method
     void fillScreen(uint16_t color);
     void update();
     // Partial update of rectangle from buffer to screen, does not power off
     void updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool using_rotation = true);
     void deepSleep();
+    void setRefresh(bool refresh) { _initial_refresh_pending = refresh; }
 
   private:
     EpdSpi& IO;
     uint8_t _buffer[GDEH0154D67_BUFFER_SIZE];
     bool _initial_refresh_pending = true;
     bool _deeply_sleeping = false;
-    void _PowerOn();
-    void _setRamDataEntryMode(uint8_t em);
+  // void _setRamDataEntryMode(uint8_t em);
     void _SetRamArea(uint8_t Xstart, uint8_t Xend, uint8_t Ystart, uint8_t Ystart1, uint8_t Yend, uint8_t Yend1);
     void _SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1);
 
-    void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
+  // void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t xe, uint16_t ye);
     void _wakeUp();
+    void _PowerOn();
     void _sleep();
     void _waitBusy(const char* message, uint16_t busy_time);
     void _waitBusy(const char* message);
