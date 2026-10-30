@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 // KW-3f   KWR-2F	BWROTP 0f	BWOTP 1f

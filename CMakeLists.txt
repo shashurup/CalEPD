@@ -93,6 +93,8 @@ idf_component_register(SRCS ${srcs}
                     #REQUIRES "FT6X36-IDF"
                     REQUIRES esp_timer 
                              driver
+                             esp_driver_spi
+                             esp_driver_gpio
                     # Uncomment for parallel epapers:
                     # REQUIRES "epdiy"
 

@@ -1,11 +1,12 @@
 /* SPI Master IO class */
 #include <epd4spi.h>
 #include <string.h>
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32
-    #define EPD_HOST    HSPI_HOST
+    #define EPD_HOST    SPI2_HOST
     #define DMA_CHAN    2
 #elif defined CONFIG_IDF_TARGET_ESP32S2
     #define EPD_HOST    SPI2_HOST
