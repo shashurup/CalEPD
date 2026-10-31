@@ -89,12 +89,12 @@ void Gdeh0154d67::_SetRamPointer(uint8_t addrX, uint8_t addrY, uint8_t addrY1)
   IO.data(addrY1);
 }
 
-void Gdeh0154d67::_writeBuffer() {
+void Gdeh0154d67::_writeBuffer(int useRam1) {
   _SetRamArea(0x00, (GDEH0154D67_WIDTH - 1) / 8,
               0x00, 0x00, (GDEH0154D67_HEIGHT - 1) % 256, 0x00);  // X-source area,Y-gate area
   _SetRamPointer(0x00, 0x00, 0x00);
   _waitBusy("ram_pointer0", 100);
-  IO.cmd(0x24);        // update current data
+  IO.cmd(useRam1 ? 0x26 : 0x24);
   for (uint16_t y = 0; y < GDEH0154D67_HEIGHT; y++)
   {
     for (uint16_t x = 0; x < GDEH0154D67_WIDTH / 8; x++)
@@ -131,12 +131,12 @@ void Gdeh0154d67::update()
 {
   _initial_refresh_pending = false;
   initUpdate();
-  _writeBuffer();
+  _writeBuffer(0);
+  _writeBuffer(1);
   IO.cmd(0x22);
   IO.data(0xf7);
   IO.cmd(0x20);
   _waitBusy("_Update_Full", full_refresh_time);
-  _writeBuffer();
 }
 
 void Gdeh0154d67::updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool using_rotation)
@@ -162,6 +162,10 @@ void Gdeh0154d67::updateWindow(int16_t x, int16_t y, int16_t w, int16_t h, bool 
   IO.data(0xff);
   IO.cmd(0x20);
   _waitBusy("partial_update", 100);
+  // When partial update happens, we write new data into RAM0
+  // then controller calculates diff between RAM0 (0x24) and RAM1 (0x26)
+  // and then flips appropriate pixels.
+  // After that it swaps RAM0 with RAM1 so we need to update what was RAM1 before
   _writeBuffer(x, y, w, h);
 }
   

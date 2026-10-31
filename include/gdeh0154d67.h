@@ -59,6 +59,6 @@ class Gdeh0154d67 : public Epd
     void _waitBusy(const char* message, uint16_t busy_time);
     void _waitBusy(const char* message);
     void _rotate(int16_t& x, int16_t& y, int16_t& w, int16_t& h);
-    void _writeBuffer();
+    void _writeBuffer(int useRam1);
     void _writeBuffer(int16_t x, int16_t y, int16_t w, int16_t h);
 };
